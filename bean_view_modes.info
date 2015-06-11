@@ -1,0 +1,5 @@
+name = Bean View Modes
+description = Adds advanced view mode functionality to the bean module.
+core = 7.x
+dependencies[] = bean
+package = Bean
