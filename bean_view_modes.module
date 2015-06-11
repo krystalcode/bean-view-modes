@@ -47,6 +47,11 @@ function bean_view_modes_settings_form($form, &$form_state) {
     '#description' => t('By default, beans cannot be placed in regions that are not selected for having their own view modes. Enable this to allow bean placement in all regions regardless. In that case, beans will be rendered using the default view mode, or the one manually set.') . '<br />' . t('Note that this applies only when bean placement is done using the block module configuration form.'),
   );
 
+  $form['section'] = array(
+    '#type' => 'markup',
+    '#markup' => '<p><strong>' . t('Select the regions for which to create custom view modes.') . '</strong></p>',
+  );
+
   foreach ($themes as $theme) {
     // Allow to configure only enabled themes.
     if (!$theme->status) {
@@ -70,7 +75,7 @@ function bean_view_modes_settings_form($form, &$form_state) {
     $regions_variable = 'bean_view_modes_' . $theme->name . '_regions';
     $form[$theme->name][$regions_variable] = array(
       '#type' => 'select',
-      '#title' => t('Select the regions for the %theme theme', array('%theme' => $theme->info['name'])),
+      '#title' => t('%theme theme regions', array('%theme' => $theme->info['name'])),
       '#options' => system_region_list($theme->name),
       '#multiple' => TRUE,
       '#states' => array(
