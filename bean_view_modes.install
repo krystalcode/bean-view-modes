@@ -1,0 +1,15 @@
+<?php
+/**
+ * @file
+ * Install file for the bean_view_modes module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function bean_view_modes_uninstall() {
+  foreach (list_themes() as $theme) {
+    variable_del('bean_view_modes_' . $theme->name);
+    variable_del('bean_view_modes_' . $theme->name . '_regions');
+  }
+}
