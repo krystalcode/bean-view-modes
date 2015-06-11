@@ -40,6 +40,13 @@ function bean_view_modes_menu() {
 function bean_view_modes_settings_form($form, &$form_state) {
   $themes = list_themes();
 
+  $form['bean_view_modes_allow_all_regions'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow bean placement in all regions'),
+    '#default_value' => variable_get('bean_view_modes_allow_all_regions'),
+    '#description' => t('By default, beans cannot be placed in regions that are not selected for having their own view modes. Enable this to allow bean placement in all regions regardless. In that case, beans will be rendered using the default view mode, or the one manually set.') . '<br />' . t('Note that this applies only when bean placement is done using the block module configuration form.'),
+  );
+
   foreach ($themes as $theme) {
     // Allow to configure only enabled themes.
     if (!$theme->status) {
@@ -125,6 +132,34 @@ function bean_view_modes_form_block_admin_configure_alter(&$form, &$form_state, 
   }
 
   $form['#submit'][] = '_bean_view_modes_block_admin_configure_submit';
+
+  // Do not proceed with altering the regions available for placement if making
+  // all regions available is chosen in the related configuration option.
+  if (variable_get('bean_view_modes_allow_all_regions')) {
+    return;
+  }
+
+  // Disabled themes/regions without custom view modes.
+  $themes = array_keys(list_themes());
+  foreach ($form['regions'] as $theme => $render_array) {
+    // Make sure this is a theme and not a render array option.
+    if (!in_array($theme, $themes)) {
+      continue;
+    }
+
+    // Deny access to the theme if it is not selected in the module settings.
+    if (!variable_get('bean_view_modes_' . $theme)) {
+      $form['regions'][$theme]['#access'] = FALSE;
+      continue;
+    }
+
+    $enabled_regions = variable_get('bean_view_modes_' . $theme . '_regions');
+    foreach ($form['regions'][$theme]['#options'] as $key => $name) {
+      if (!in_array($key, $enabled_regions)) {
+        unset($form['regions'][$theme]['#options'][$key]);
+      }
+    }
+  }
 }
 
 /**
