@@ -41,6 +41,7 @@ function bean_view_modes_settings_form($form, &$form_state) {
   $themes = list_themes();
 
   foreach ($themes as $theme) {
+    // Allow to configure only enabled themes.
     if (!$theme->status) {
       continue;
     }
