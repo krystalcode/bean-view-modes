@@ -3,3 +3,76 @@
  * @file
  * Module file for the bean_view_mode module.
  */
+
+/**
+ * Implements hook_permission().
+ */
+function bean_view_modes_permission() {
+  $permissions = array();
+
+  $permissions['administer bean_view_modes settings'] = array(
+    'title' => t('Administer Bean View Modes settings'),
+    'description' => t('Choose which themes and regions are available for bean placement in block configuration'),
+  );
+
+  return $permissions;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function bean_view_modes_menu() {
+  $items = array();
+
+  $items['admin/config/content/bean-view-modes'] = array(
+    'title' => 'Bean View Modes',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bean_view_modes_settings_form'),
+    'access arguments' => array('administer bean_view_modes settings'),
+  );
+
+  return $items;
+}
+
+/**
+ * Returns the module configuration form.
+ */
+function bean_view_modes_settings_form($form, &$form_state) {
+  $themes = list_themes();
+
+  foreach ($themes as $theme) {
+    if (!$theme->status) {
+      continue;
+    }
+
+    $form[$theme->name] = array(
+      '#type' => 'fieldset',
+      '#title' => t('%theme theme', array('%theme' => $theme->info['name'])),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE
+    );
+
+    $theme_variable = 'bean_view_modes_' . $theme->name;
+    $form[$theme->name][$theme_variable] = array(
+      '#type' => 'checkbox',
+      '#title' => t('%theme theme', array('%theme' => $theme->info['name'])),
+      '#default_value' => variable_get($theme_variable),
+    );
+
+    $regions_variable = 'bean_view_modes_' . $theme->name . '_regions';
+    $form[$theme->name][$regions_variable] = array(
+      '#type' => 'select',
+      '#title' => t('Select the regions for the %theme theme', array('%theme' => $theme->info['name'])),
+      '#options' => system_region_list($theme->name),
+      '#multiple' => TRUE,
+      '#states' => array(
+        'visible' => array(
+          'input[name="bean_view_modes_' . $theme->name . '"]' => array('checked' => TRUE),
+        ),
+      ),
+      '#default_value' => variable_get($regions_variable),
+    );
+  }
+
+  return system_settings_form($form);
+}
