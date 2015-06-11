@@ -76,3 +76,40 @@ function bean_view_modes_settings_form($form, &$form_state) {
 
   return system_settings_form($form);
 }
+
+/**
+ * Implements hook_entity_info_alter().
+ *
+ * Adds bean view modes for the regions selected in the module configuration
+ * form.
+ */
+function bean_view_modes_entity_info_alter(&$entity_info) {
+  $themes = list_themes();
+  foreach ($themes as $theme) {
+    // Take into account only enabled themes. Just in case a theme was enabled
+    // and regions were selected, then disabled and the corresponding variables
+    // were not cleaned up.
+    if (!$theme->status) {
+      continue;
+    }
+
+    if (!variable_get('bean_view_modes_' . $theme->name)) {
+      continue;
+    }
+
+    $regions = variable_get('bean_view_modes_' . $theme->name . '_regions');
+
+    // We load all regions only so that we get the regions' human readable names.
+    $all_regions = system_region_list($theme->name);
+
+    foreach ($regions as $region) {
+      $entity_info['bean']['view modes'][$theme->name . '_' . $region] = array(
+        'label' => t('!theme - !region', array(
+          '!theme' => $theme->info['name'],
+          '!region' => $all_regions[$region]
+        )),
+        'custom settings' => TRUE,
+      );
+    }
+  }
+}
