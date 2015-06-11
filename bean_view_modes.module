@@ -114,3 +114,62 @@ function bean_view_modes_entity_info_alter(&$entity_info) {
     }
   }
 }
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function bean_view_modes_form_block_admin_configure_alter(&$form, &$form_state, $form_id) {
+  // We want to do any alterations only for "bean" blocks.
+  if ($form['module']['#value'] !== 'bean') {
+    return;
+  }
+
+  $form['#submit'][] = '_bean_view_modes_block_admin_configure_submit';
+}
+
+/**
+ * Custom submit callback for the block_admin_configure form.
+ *
+ * Updates the bean view mode to match the first region that it is placed
+ * at. There can only be one view mode per bean so we pick the first
+ * theme/region that is one of the view mode enabled.
+ */
+function _bean_view_modes_block_admin_configure_submit($form, &$form_state) {
+  $view_mode = 'default';
+
+  foreach ($form_state['values']['regions'] as $theme => $region) {
+    if (!$region || !variable_get('bean_view_modes_' . $theme)) {
+      continue;
+    }
+
+    $enabled_regions = variable_get('bean_view_modes_' . $theme . '_regions');
+    if (!in_array($region, $enabled_regions)) {
+      continue;
+    }
+
+    $view_mode = $theme . '_' . $region;
+  }
+
+  _bean_view_modes_bean_set_view_mode($form_state['values']['delta'], $view_mode);
+}
+
+/**
+ * Changes the view mode for a "bean".
+ *
+ * @param string $delta
+ *   The delta of the bean.
+ * @param string $view_mode
+ *   The view mode to set.
+ * @param string|null $revision
+ *   The revision of the bean to update. If NULL, the default revision will be
+ *   updated.
+ */
+function _bean_view_modes_bean_set_view_mode($delta, $view_mode, $revision = NULL) {
+  // Load and save the bean updating only its view mode. For whatever reason the
+  // view mode is stored both in the "view_mode" column and serialized within
+  // the "data" column in the "bean" table, so we need to update it in both.
+  $bean = bean_load_delta($delta, FALSE, $revision);
+  $bean->view_mode = $view_mode;
+  $bean->setValues(array('view_mode' => $view_mode));
+  $bean->save();
+}
