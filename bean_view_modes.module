@@ -3,9 +3,21 @@
  * @file
  * Module file for the bean_view_mode module.
  *
- * @Issue("Clean up using hook_themes_disabled")
- * @Issue("Conflict when permission to edit view mode is granted?")
- * @Issue("Deny access to edit view mode regardless of related permission")
+ * @Issue(
+ *   "Clean up using hook_themes_disabled",
+ *   type="bug"
+ *   priority="normal"
+ * )
+ * @Issue(
+ *   "Conflict when permission to edit view mode is granted?",
+ *   type="investigation",
+ *   priority="normal"
+ * )
+ * @Issue(
+ *   "Deny access to edit view mode regardless of related permission",
+ *   type="investigation",
+ *   priority="normal"
+ * )
  */
 
 /**
